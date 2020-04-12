@@ -1,4 +1,3 @@
-// 创建http服务器
 package main
 
 import (

@@ -1,9 +1,240 @@
 <html>
-    <header>
-        Github图床工具
-    </header>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <body>
-        
-    </body>
+<title>
+    Github图床工具
+</title>
+
+<!-- Bootstrap -->
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link href="bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet" />
+<link href="bootstrap-fileinput/css/fileinput-rtl.min.css" rel="stylesheet" />
+<link href="bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" />
+<!-- HTML5 shim 和 Respond.js 是为了让 IE8 支持 HTML5 元素和媒体查询（media queries）功能 -->
+<!-- 警告：通过 file:// 协议（就是直接将 html 页面拖拽到浏览器中）访问页面时 Respond.js 不起作用 -->
+<!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+
+<body>
+    <p></p><br />
+    <div class="container">
+        <div class="row clearfix">
+            <div class="col-md-2 column">
+            </div>
+            <div class="col-md-8 column">
+                <div id="github_path" style="visibility: hidden;">
+                    保存位置：
+                    <select id="select-repository" class="selectpicker" title="select a repository"
+                        data-live-search="true">
+                    </select>
+                    /
+                    <input id="picture_path" type="text" class="form-control" style="display:inline;width:200px;"
+                        autocomplete="off" placeholder="path" />
+                    <button class="btn btn-primary btn-mid" data-toggle="modal" data-target="#modal_login">配置</button>
+                </div>
+                <p></p>
+                <input id="input-file" accept="image/png, image/jpeg, image/gif" name="input-b1" type="file"
+                    class="file" data-browse-on-zone-click="true" data-allowed-file-extensions='["jpg", "png", "gif"]'>
+            </div>
+            <div class="col-md-2 column">
+            </div>
+        </div>
+
+
+        <!--登录面板 -->
+        <!-- <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">开始演示模态框</button> -->
+        <div class="modal fade" id="modal_login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Github登录</h4>
+                    </div>
+                    <div class="modal-body">
+                        <!-- 登录界面 -->
+                        <form style="text-align:center">
+                            <div class="form-group">
+                                <label for="user" stype="display:inline;">账户：</label>
+                                <input type="text" class="form-control" id="username"
+                                    style="display:inline;width:200px;" autocomplete="off" />
+                            </div>
+                            <div class="form-group">
+                                <label for="password" style="display:inline;">密码：</label>
+                                <input type="password" class="form-control" id="password"
+                                    style="display:inline;width:200px;" autocomplete="off" />
+                            </div>
+                        </form>
+                        <div id="login_warn" class="alert alert-success alert-dismissable" style="display: none;">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                            <div id="warn_content">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" onclick="login()">验证</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+        <script src="js/jquery.min.js"></script>
+        <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+        <!-- 加载FileInput插件-->
+        <script src="bootstrap-fileinput/js/plugins/piexif.min.js"></script>
+        <script src="bootstrap-fileinput/js/fileinput.min.js"></script>
+        <script src="bootstrap-fileinput/js/locales/zh.js"></script>
+        <!-- 加载Select插件 -->
+        <script src="bootstrap-select/js/bootstrap-select.min.js"></script>
+
+        <script src="js/auth.js"></script>
+        <script src="js/github.js"></script>
+
+        <script>
+            function updatePage() {
+                if (!hasToken()) {
+                    $('#modal_login').modal("show");
+                } else {
+                    document.getElementById("github_path").style.visibility = "visible";//显示
+
+                    //检查Auth
+                    checkAuth();
+                }
+            }
+
+            function showLoginWarn(info) {
+                document.getElementById("login_warn").style.display = "";
+                document.getElementById("warn_content").innerHTML = info;
+            }
+
+            function hiddenLoginWarn() {
+                document.getElementById("login_warn").style.display = "None";
+                document.getElementById("warn_content").innerHTML = "";
+            }
+
+            //初始化模态框
+            $("#modal_login").modal({
+                //点击背景不关闭
+                backdrop: "static",
+                //触发键盘esc事件时不关闭
+                keyboard: false,
+                show: false
+            });
+
+            // 模态框 关闭前事件
+            $('#modal_login').on('hide.bs.modal', function () {
+                // updatePage();
+            });
+
+            $("#input-file").fileinput({
+                language: 'zh', //设置语言
+                allowedFileExtensions: ['jpg', 'gif', 'png'],//接收的文件后缀
+                uploadUrl: "#",
+                uploadAsync: true, //默认异步上传
+                showUpload: true, //是否显示上传按钮
+                showRemove: true, //显示移除按钮
+                showPreview: true, //是否显示预览
+                showCaption: true,//是否显示标题
+                browseClass: "btn btn-primary", //按钮样式    
+                dropZoneEnabled: true,//是否显示拖拽区域
+                //minImageWidth: 50, //图片的最小宽度
+                //minImageHeight: 50,//图片的最小高度
+                //maxImageWidth: 1000,//图片的最大宽度
+                //maxImageHeight: 1000,//图片的最大高度
+                //maxFileSize:0,//单位为kb，如果为0表示不限制文件大小
+                //minFileCount: 0,
+                maxFileCount: 3, //表示允许同时上传的最大文件个数
+                enctype: 'multipart/form-data',
+                validateInitialCount: true,
+                previewFileIcon: "<iclass='glyphicon glyphicon-king'></i>",
+                msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+            }).on('filepreajax', function (event, previewId, index) {
+                console.log('File pre ajax triggered');
+                //更新url
+                var timestamp = (new Date()).valueOf();
+                var fileName = $("#input-file").val() + "";
+                var strFileName = fileName.substring(fileName.lastIndexOf("\\")+1);
+                strFileName = "" + timestamp + "_" + strFileName;
+                var path = $('#picture_path').val();
+
+                if(path.length>0) {
+                    path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + path + "/" + strFileName;
+                } else {
+                    path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + strFileName;
+                }
+
+                submitUploadFile(path, "", getToken(), uploadResultCb)
+            });
+
+            function uploadResultCb(succ, err) {
+                if(succ) {
+                    alert("上传成功");
+                } else {
+                    alert("上传失败：" + err);
+                }
+            }
+
+
+            window.onload = function () {
+                updatePage();
+            }
+
+            function LoginSuccCb(resp) {
+                showLoginWarn("认证成功");
+                //获取用户的仓库列表
+
+            }
+
+            function LoginFailedCb(err) {
+                showLoginWarn("认证失败");
+                cleanAuthInfo();
+            }
+
+            function login() {
+                var username = document.getElementById('username');
+                var password = document.getElementById('password');
+                if (username.value.length == 0 || password.value.length == 0) {
+                    showLoginWarn("账号和密码不能为空");
+                }
+
+                var token = generateToken(username.value, password.value);
+
+                submitLogin(token, LoginSuccCb, LoginFailedCb);
+                saveAuthInfo(username.value, password.value, token);
+            }
+
+            function getReposSucc(content) {
+                for (item in content) {
+                    $("#select-repository").append("<option value='" + content[item].full_name + "'>" + content[item].full_name + "</option>");
+                }
+
+                //使用refresh方法更新UI以匹配新状态。
+                $('#select-repository').selectpicker('refresh');
+                //render方法强制重新渲染引导程序 - 选择ui。
+                $('#select-repository').selectpicker('render');
+            }
+
+            function checkSuccCb() {
+                //更新仓库列表
+                submitGetRepos(getToken(), getReposSucc);
+            }
+
+            function checkFailedCb() {
+                showLoginWarn("github认证失败");
+                $('#modal_login').modal("show");
+            }
+
+            function checkAuth() {
+                submitLogin(getToken(), checkSuccCb, checkFailedCb);
+            }
+        </script>
+</body>
+
 </html>
