@@ -1,1 +1,5 @@
 .vscode
+tmp
+go.sum
+service/bin/
+nohup.out

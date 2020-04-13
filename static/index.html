@@ -96,6 +96,7 @@
 
         <script src="js/auth.js"></script>
         <script src="js/github.js"></script>
+        <script src="js/md5.min.js"></script>
 
         <script>
             function updatePage() {
@@ -136,7 +137,7 @@
             $("#input-file").fileinput({
                 language: 'zh', //设置语言
                 allowedFileExtensions: ['jpg', 'gif', 'png'],//接收的文件后缀
-                uploadUrl: "#",
+                uploadUrl: "/upload",
                 uploadAsync: true, //默认异步上传
                 showUpload: true, //是否显示上传按钮
                 showRemove: true, //显示移除按钮
@@ -155,31 +156,27 @@
                 validateInitialCount: true,
                 previewFileIcon: "<iclass='glyphicon glyphicon-king'></i>",
                 msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
-            }).on('filepreajax', function (event, previewId, index) {
-                console.log('File pre ajax triggered');
-                //更新url
+            }).on('filepreupload', function (event, data, previewId, index) {
                 var timestamp = (new Date()).valueOf();
                 var fileName = $("#input-file").val() + "";
-                var strFileName = fileName.substring(fileName.lastIndexOf("\\")+1);
-                strFileName = "" + timestamp + "_" + strFileName;
+                var fileExtension = fileName.substring(fileName.lastIndexOf('.'));
+                var strFileName = fileName.substring(fileName.lastIndexOf("\\") + 1);
+                strFileName = md5("" + timestamp + "_" + strFileName) + fileExtension;
                 var path = $('#picture_path').val();
 
-                if(path.length>0) {
+                if (path.length > 0) {
                     path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + path + "/" + strFileName;
                 } else {
                     path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + strFileName;
                 }
-
-                submitUploadFile(path, "", getToken(), uploadResultCb)
-            });
-
-            function uploadResultCb(succ, err) {
-                if(succ) {
-                    alert("上传成功");
-                } else {
-                    alert("上传失败：" + err);
+                data.jqXHR.setRequestHeader("Target-Path", path);
+                data.jqXHR.setRequestHeader("Authorization", getToken());
+            }).on('fileuploaded', function (event, data, index, fileId) {
+                console.log('File uploaded', data.response, index, fileId);
+                if(data.response['imagePath']) {
+                    alert(data.response['imagePath']);
                 }
-            }
+            });
 
 
             window.onload = function () {

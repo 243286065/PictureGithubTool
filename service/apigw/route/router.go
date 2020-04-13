@@ -18,5 +18,8 @@ func Router() *gin.Engine {
 	//处理默认首页
 	router.GET("/", handler.DefaultHomePageHandler)
 
+	//处理文件上传请求
+	router.POST("/upload", handler.UploadFileHandler)
+
 	return router
 }
