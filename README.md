@@ -1,6 +1,18 @@
 # PictureGithubTool
 使用github作为图床的工具，快速上传图片到github，并获取链接地址。
 
+# 运行方法
+Linux下可以直接执行：
+```
+./start-all.sh
+```
+
+Windows下还没写启动后脚本，可以直接使用go运行：
+```
+go run service/apigw/main.go
+```
+
+然后就可以通过浏览器访问`http://ip:8081/`, ip为启动服务的主机ip，端口号可以通过修改`config/web_server.go`文件中的`WebServerHost`字段来修改，默认是8081。
 
 # 使用的工具及插件
 ## bootstrap
