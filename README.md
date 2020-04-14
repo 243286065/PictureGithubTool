@@ -1,5 +1,5 @@
 # PictureGithubTool
-使用github作为图床的工具，快速上传图片到github，并获取链接地址
+使用github作为图床的工具，快速上传图片到github，并获取链接地址。
 
 
 # 使用的工具及插件
@@ -11,3 +11,27 @@
 
 ## bootstrap-select
 基于bootstrap实现的下拉搜索插件，官网：https://developer.snapappointments.com/bootstrap-select/ 。
+
+
+# 运行效果
+![image](https://raw.githubusercontent.com/243286065/pictures_markdown/master/test/cbdb0a20d3b1ecda8469068d31cd3f79.png)
+
+![image](https://raw.githubusercontent.com/243286065/pictures_markdown/master/test/66041c900017ef153dc7a2c0ca9c42fb.png)
+
+# 实现逻辑
+* 主要是使用[github v3 api](https://developer.github.com/v3/)。这里使用golang开发主要是为了锻炼，完全可以只用js实现。
+
+* 本身工具是完全的客户端程序，但是因为对bootstrap-fileinput插件，如何直接上传到github没弄清楚，所以暂时还是有服务端，客户端先通过bootstrap-fileinput上传图片到服务端，服务端再上传到github.
+
+
+# 注意事项
+* 敬告：目前实现的github认证是直接采用basic认证，因为是存在账号密码泄露风险的，***因此使用前请确认环境安全***。
+
+* 如果上传失败可能的原因：
+    * github暂时无法连接，你可以重新登录试试；
+    * 没有选择仓库；
+    * 路径填写不正确，可以填写例如"a/b"，这样会将文件存放在'a/b'目录。
+
+* 请注意仓库不要使用私有仓库，这会导致未认证时无法访问；也请注意不要轻易删除存放图片的仓库里的文件。
+
+* 实现比较仓促，可能会有很多bug或者错误逻辑。

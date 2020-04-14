@@ -26,16 +26,14 @@
             <div class="col-md-2 column">
             </div>
             <div class="col-md-8 column">
-                <div id="github_path" style="visibility: hidden;">
+                <div id="github_path">
                     保存位置：
-                    <select id="select-repository" class="selectpicker" title="select a repository"
-                        data-live-search="true">
-                    </select>
+                    <input id="picture_repo" type="text" class="form-control" style="display:inline;width:250px;"
+                        autocomplete="off" placeholder="repo" readonly="readonly" title="仓库地址，请通过配置进行修改" data-toggle="tooltip"/>
                     /
                     <input id="picture_path" type="text" class="form-control" style="display:inline;width:200px;"
-                        autocomplete="off" placeholder="path" />
+                        autocomplete="off" placeholder="path" title="文件相对路径，以'/'作为目录切换" data-toggle="tooltip"/>
                     <button class="btn btn-primary btn-mid" data-toggle="modal" data-target="#modal_login">配置</button>
-                    <button class="btn btn-primary btn-mid" data-toggle="modal" data-target="#modal_result">测试</button>
                 </div>
                 <p></p>
                 <input id="input-file" accept="image/png, image/jpeg, image/gif" name="input-b1" type="file"
@@ -79,6 +77,31 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                         <button type="button" class="btn btn-primary" onclick="login()">验证</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--配置路径面板 -->
+        <div class="modal fade" id="modal_repo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">配置默认仓库</h4>
+                    </div>
+                    <center>
+                        <div class="modal-body">
+                            <label>仓库：</label>
+                            <select id="select-repository" class="selectpicker" title="select a repository"
+                                data-live-search="true">
+                            </select>
+                        </div>
+                    </center>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" onclick="setRepo()">保存</button>
                     </div>
                 </div>
             </div>
@@ -147,12 +170,10 @@
             function updatePage() {
                 if (!hasToken()) {
                     $('#modal_login').modal("show");
-                } else {
-                    document.getElementById("github_path").style.visibility = "visible";//显示
-
-                    //检查Auth
-                    checkAuth();
                 }
+
+                document.getElementById("picture_repo").value = getRepo();
+                document.getElementById("picture_path").value = getPath();
             }
 
             function showLoginWarn(info) {
@@ -174,11 +195,6 @@
                 show: false
             });
 
-            // 模态框 关闭前事件
-            $('#modal_login').on('hide.bs.modal', function () {
-                // updatePage();
-            });
-
             // 显示tooltip提示
             $(function () { $("[data-toggle='tooltip']").tooltip(); });
 
@@ -198,6 +214,17 @@
                 var e = document.getElementById("result_html");
                 e.select();
                 document.execCommand("Copy");
+            }
+
+            function setRepo() {
+                var repo = $('#select-repository').val();
+                if(repo.length == 0) {
+
+                } else {
+                    saveRepo(repo);
+                    $('#modal_repo').modal("hide");
+                    document.getElementById("picture_repo").value = repo;
+                }
             }
 
             $("#input-file").fileinput({
@@ -224,16 +251,17 @@
                 msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
             }).on('filepreupload', function (event, data, previewId, index) {
                 var timestamp = (new Date()).valueOf();
-                var fileName = $("#input-file").val() + "";
+                var fileName = data.files[0].name + "";
                 var fileExtension = fileName.substring(fileName.lastIndexOf('.'));
                 var strFileName = fileName.substring(fileName.lastIndexOf("\\") + 1);
                 strFileName = md5("" + timestamp + "_" + strFileName) + fileExtension;
                 var path = $('#picture_path').val();
 
+
                 if (path.length > 0) {
-                    path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + path + "/" + strFileName;
+                    path = "https://api.github.com/repos/" + $('#picture_repo').val() + "/contents/" + path + "/" + strFileName;
                 } else {
-                    path = "https://api.github.com/repos/" + $('#select-repository').val() + "/contents/" + strFileName;
+                    path = "https://api.github.com/repos/" + $('#picture_repo').val() + "/contents/" + strFileName;
                 }
                 data.jqXHR.setRequestHeader("Target-Path", path);
                 data.jqXHR.setRequestHeader("Authorization", getToken());
@@ -249,23 +277,33 @@
                     document.getElementById("result_html").value = html;
 
                     $('#modal_result').modal("show");
+                    savePath($('#picture_path').val());
                 }
             });
 
 
-            window.onload = function () {
-                updatePage();
-            }
+            // window.onload = function () {
+            //     updatePage();
+            // }
+            updatePage();
 
             function LoginSuccCb(resp) {
                 showLoginWarn("认证成功");
-                //获取用户的仓库列表
 
+                var username = document.getElementById('username');
+                var password = document.getElementById('password');
+                var token = generateToken(username.value, password.value);
+                saveAuthInfo(username.value, "", token);
+                document.getElementById('password').value = "";
+
+                //获取用户的仓库列表
+                checkSuccCb();
             }
 
             function LoginFailedCb(err) {
                 showLoginWarn("认证失败");
                 cleanAuthInfo();
+                document.getElementById('password').value = "";
             }
 
             function login() {
@@ -273,12 +311,11 @@
                 var password = document.getElementById('password');
                 if (username.value.length == 0 || password.value.length == 0) {
                     showLoginWarn("账号和密码不能为空");
+                    return;
                 }
 
                 var token = generateToken(username.value, password.value);
-
                 submitLogin(token, LoginSuccCb, LoginFailedCb);
-                saveAuthInfo(username.value, password.value, token);
             }
 
             function getReposSucc(content) {
@@ -290,6 +327,14 @@
                 $('#select-repository').selectpicker('refresh');
                 //render方法强制重新渲染引导程序 - 选择ui。
                 $('#select-repository').selectpicker('render');
+
+                //显示配置路径的模态框
+                $('#modal_login').modal("hide");
+                $('#modal_repo').modal("show");
+
+                //清空登录界面
+                document.getElementById('username').value = "";
+                document.getElementById('password').value = "";
             }
 
             function checkSuccCb() {

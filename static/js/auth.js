@@ -31,7 +31,33 @@ function saveAuthInfo(username, password, token) {
     saveToken(token);
 }
 
+function saveRepo(repo) {
+    localStorage.setItem("repo", repo);
+}
+
+function getRepo() {
+    return localStorage.getItem("repo");
+}
+
+function hasRepo() {
+    return localStorage.getItem("repo") != null;
+}
+
+function savePath(path) {
+    localStorage.setItem("path", path);
+}
+
+function getPath() {
+    return localStorage.getItem("path");
+}
+
+function haspath() {
+    return localStorage.getItem("path") != null;
+}
+
 function cleanAuthInfo() {
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("repo");
+    localStorage.removeItem("path");
 }
