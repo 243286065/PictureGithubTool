@@ -37,7 +37,8 @@ go run service/apigw/main.go
 
 
 # 注意事项
-* 敬告：目前实现的github认证是直接采用basic认证，因为是存在账号密码泄露风险的，***因此使用前请确认环境安全***。
+* 敬告：github已禁用用户名和密码的认证方式，改用access token的方式，详见[官方文档](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)。
+
 
 * 如果上传失败可能的原因：
     * github暂时无法连接，你可以重新登录试试；
@@ -51,3 +52,4 @@ go run service/apigw/main.go
 # 版本说明
 * v1.0: 支持基础的图片上传功能;
 * v1.1: 支持粘贴板粘贴文件.(每次仍只允许最多上传1个文件,因此粘贴板粘贴的文件可能第一次上传失败,可以刷新重新上传).
+* v1.2:改用access token认证。
