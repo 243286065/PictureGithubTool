@@ -8,8 +8,9 @@ function submitLogin(token, succHandler, failedHandler) {
         type: "GET",
         contentType: "application/json",
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("Authorization",token);
-            xhr.setRequestHeader("Accept","application/vnd.github.v3+json");
+            xhr.setRequestHeader("Authorization","Bearer " + token);
+            xhr.setRequestHeader("Accept","*/*");
+            xhr.setRequestHeader("Accept-Encoding","gzip, deflate, br");
         },
         error: function (err) {
             console.log(JSON.stringify(err));
@@ -32,8 +33,9 @@ function submitGetRepos(token, succHandler) {
         type: "GET",
         contentType: "application/json",
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("Authorization",token);
-            xhr.setRequestHeader("Accept","application/vnd.github.v3+json");
+            xhr.setRequestHeader("Authorization","token "+ token);
+            xhr.setRequestHeader("Accept","*/*");
+            xhr.setRequestHeader("Accept-Encoding","gzip, deflate, br");
         },
         data: {
             "type": "all",
@@ -51,15 +53,14 @@ function submitGetRepos(token, succHandler) {
 }
 
 function submitUploadFile(targetPath, content, token, resultHandler) {
-    
-
     $.ajax({
         url: targetPath,
         type: "PUT",
         contentType: "application/json",
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("Authorization", token);
-            xhr.setRequestHeader("Accept","application/vnd.github.v3+json");
+            xhr.setRequestHeader("Authorization", "token "+ token);
+            xhr.setRequestHeader("Accept","*/*");
+            xhr.setRequestHeader("Accept-Encoding","gzip, deflate, br");
         },
         data: {
             message: 'upload file',

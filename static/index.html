@@ -58,14 +58,9 @@
                         <!-- 登录界面 -->
                         <form style="text-align:center">
                             <div class="form-group">
-                                <label for="user" stype="display:inline;">账户：</label>
-                                <input type="text" class="form-control" id="username"
-                                    style="display:inline;width:200px;" autocomplete="off" />
-                            </div>
-                            <div class="form-group">
-                                <label for="password" style="display:inline;">密码：</label>
-                                <input type="password" class="form-control" id="password"
-                                    style="display:inline;width:200px;" autocomplete="off" />
+                                <label for="user" stype="display:inline;"><a href="https://github.com/settings/tokens/new" target="_blank">Access Token</a>：</label>
+                                <input type="text" class="form-control" id="token"
+                                    style="display:inline;width:300px;" autocomplete="off" />
                             </div>
                         </form>
                         <div id="login_warn" class="alert alert-success alert-dismissable" style="display: none;">
@@ -264,7 +259,8 @@
                 }
 
                 data.jqXHR.setRequestHeader("Target-Path", path);
-                data.jqXHR.setRequestHeader("Authorization", getToken());
+                data.jqXHR.setRequestHeader("Authorization", "token "+ getToken());
+                data.jqXHR.setRequestHeader("Accept","*/*");
             }).on('fileuploaded', function (event, data, index, fileId) {
                 console.log('File uploaded', data.response, index, fileId);
                 if (data.response['imagePath']) {
@@ -290,11 +286,9 @@
             function LoginSuccCb(resp) {
                 showLoginWarn("认证成功");
 
-                var username = document.getElementById('username');
-                var password = document.getElementById('password');
-                var token = generateToken(username.value, password.value);
-                saveAuthInfo(username.value, "", token);
-                document.getElementById('password').value = "";
+                var token = document.getElementById('token');
+                saveAuthInfo(token.value);
+                token.value = "";
 
                 //获取用户的仓库列表
                 checkSuccCb();
@@ -303,19 +297,16 @@
             function LoginFailedCb(err) {
                 showLoginWarn("认证失败");
                 cleanAuthInfo();
-                document.getElementById('password').value = "";
+                document.getElementById('token').value = "";
             }
 
             function login() {
-                var username = document.getElementById('username');
-                var password = document.getElementById('password');
-                if (username.value.length == 0 || password.value.length == 0) {
-                    showLoginWarn("账号和密码不能为空");
+                var token = document.getElementById('token');
+                if (token.value.length == 0) {
+                    showLoginWarn("token不能为空");
                     return;
                 }
-
-                var token = generateToken(username.value, password.value);
-                submitLogin(token, LoginSuccCb, LoginFailedCb);
+                submitLogin(token.value, LoginSuccCb, LoginFailedCb);
             }
 
             function getReposSucc(content) {
@@ -333,8 +324,7 @@
                 $('#modal_repo').modal("show");
 
                 //清空登录界面
-                document.getElementById('username').value = "";
-                document.getElementById('password').value = "";
+                document.getElementById('token').value = "";
             }
 
             function checkSuccCb() {
