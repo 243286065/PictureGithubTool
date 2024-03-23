@@ -1,5 +1,5 @@
 # PictureGithubTool
-使用github作为图床的工具，快速上传图片到github，并获取链接地址。演示地址： http://123.57.71.24:8082/ 。
+使用github作为图床的工具，快速上传图片到github，并获取链接地址。演示地址： http://47.116.197.43:8081/ 。
 
 # 运行方法
 Linux下可以直接执行：
@@ -38,7 +38,7 @@ go run service/apigw/main.go
 
 # 注意事项
 * 敬告：github已禁用用户名和密码的认证方式，改用access token的方式，详见[官方文档](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token)。
-
+> 注意创建access token的时候开通仓库权限
 
 * 如果上传失败可能的原因：
     * github暂时无法连接，你可以重新登录试试；
